@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>Duel-Links Calculator</title>
+  <link href="https://cdn.staticfile.org/layui/2.7.6/css/layui.css" rel="stylesheet">
+  <link href="dragon.png" rel="shortcut icon" type="image/x-icon" />
+  <script src="calculator.js"></script>
+</head>
+
+<body>
+
+<div class="layui-container" style="margin-top: 20px">
+
+  <div class="layui-row">
+    <div class="layui-col-md8 layui-col-md-offset2">
+
+      <div class="layui-tab">
+        <ul class="layui-tab-title">
+          <li class="layui-this">构筑概率计算器</li>
+          <li>升级经验计算器</li>
+        </ul>
+        <div class="layui-tab-content">
+          <div class="layui-tab-item layui-show">
+            <blockquote class="layui-elem-quote">用于计算起手摸到指定卡牌组合的概率，来帮助你更好的构筑套牌。</blockquote>
+
+            <div class="layui-field-box">
+              <form action="" class="layui-form layui-form-pane" lay-filter="setDefaultValue">
+
+                <div class="layui-form-item">
+                  <div class="layui-inline">
+                    <label class="layui-form-label">牌库数量</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                      <input autocomplete="off" class="layui-input" lay-verify="required|number" name="deckCount" placeholder="20" required type="text">
+                    </div>
+                  </div>
+                  <div class="layui-inline">
+                    <label class="layui-form-label">手牌数量</label>
+                    <div class="layui-input-inline" style="width: 100px;">
+                      <input autocomplete="off" class="layui-input" lay-verify="required|number" name="holdingCount" placeholder="4" required type="text">
+                    </div>
+                  </div>
+
+                </div>
+                <table id="card" lay-filter="card"></table>
+                <fieldset class="layui-elem-field layui-field-title" id="resultField" style="margin-top: 30px; display: none">
+                  <legend>
+                    <div id="resultPercents">
+
+                    </div>
+                  </legend>
+                </fieldset>
+
+
+                <div class="layui-form-item">
+                  <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-normal" id="new-row">新增一行</button>
+                    <button class="layui-btn" lay-filter="drawCard" lay-submit>开始计算</button>
+                    <button class="layui-btn layui-btn-primary" type="reset" id="card-reset">重置</button>
+                  </div>
+                </div>
+              </form>
+
+              <div class="layui-collapse" style="font-size: 15px">
+                <div class="layui-colla-item">
+                  <h2 class="layui-colla-title">示例1：单种卡牌上手率</h2>
+                  <div class="layui-colla-content">
+                    我的破坏剑士卡组里面有<span style="color: blueviolet">20</span>张牌，其中有<span style="color: blueviolet">3</span>张破坏剑士的拌龙，
+                    我想计算<b>后手</b>情况下有<span style="color: blueviolet">1张或以上</span>的拌龙起手出现在手牌的概率：
+
+                    <div class="layui-form-item" style="margin-top: 10px">
+                      <div class="layui-inline">
+                        <label class="layui-form-label">牌库数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="20" type="text" disabled>
+                        </div>
+                      </div>
+                      <div class="layui-inline">
+                        <label class="layui-form-label">手牌数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="5" type="text" disabled>
+                        </div>
+                      </div>
+                    </div>
+
+                    <table class="layui-table" lay-skin="line">
+                      <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                      </colgroup>
+                      <thead>
+                      <tr>
+                        <th>卡牌/组合名</th>
+                        <th>卡牌数量</th>
+                        <th>最小抽取数量</th>
+                        <th>最大抽取数量</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td>拌龙</td>
+                        <td>3</td>
+                        <td>1</td>
+                        <td>3</td>
+                      </tr>
+                      </tbody>
+                    </table>
+
+                  </div>
+                </div>
+                <div class="layui-colla-item">
+                  <h2 class="layui-colla-title">示例2：卡牌组合同时上手率</h2>
+                  <div class="layui-colla-content">
+                    我的白龙卡组一共<span style="color: coral">21</span>张牌，其中包含了<span style="color: coral">3</span>个太古白石和<span style="color: coral">1</span>个传说白石，
+                    还有<span style="color: coral">3</span>张调和的宝牌，我想知道<b>先手</b>时，白石+宝牌同时上手的概率：
+
+                    <div class="layui-form-item" style="margin-top: 10px">
+                      <div class="layui-inline">
+                        <label class="layui-form-label">牌库数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="21" type="text" disabled>
+                        </div>
+                      </div>
+                      <div class="layui-inline">
+                        <label class="layui-form-label">手牌数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="4" type="text" disabled>
+                        </div>
+                      </div>
+                    </div>
+
+                    <table class="layui-table" lay-skin="line">
+                      <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                      </colgroup>
+                      <thead>
+                      <tr>
+                        <th>卡牌/组合名</th>
+                        <th>卡牌数量</th>
+                        <th>最小抽取数量</th>
+                        <th>最大抽取数量</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td>太古白石+传说白石</td>
+                        <td>4</td>
+                        <td>1</td>
+                        <td>3</td>
+                      </tr>
+                      <tr>
+                        <td>宝牌</td>
+                        <td>3</td>
+                        <td>1</td>
+                        <td>3</td>
+                      </tr>
+                      </tbody>
+                    </table>
+
+                    <blockquote class="layui-elem-quote layui-quote-nm">PS：如果不能接受 3白石+1宝牌 或 3宝牌+1白石，就可以把最大抽取数量设置为2</blockquote>
+                  </div>
+                </div>
+                <div class="layui-colla-item">
+                  <h2 class="layui-colla-title">示例3：更灵活的搭配</h2>
+                  <div class="layui-colla-content">
+                    我的机界骑士卡组带了爆裂模式轴(念动力*3 爆裂兽*1 爆裂模式*1)，一共<span style="color: blue">23</span>张牌，
+                    我想知道，<b>先手</b>抽到<span style="color: blue">1</span>张念动力，但是<b>不抽到</b>爆裂兽和爆裂模式的概率是多少：
+
+                    <div class="layui-form-item" style="margin-top: 10px">
+                      <div class="layui-inline">
+                        <label class="layui-form-label">牌库数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="23" type="text" disabled>
+                        </div>
+                      </div>
+                      <div class="layui-inline">
+                        <label class="layui-form-label">手牌数量</label>
+                        <div class="layui-input-inline" style="width: 100px;">
+                          <input autocomplete="off" class="layui-input" placeholder="4" type="text" disabled>
+                        </div>
+                      </div>
+                    </div>
+
+                    <table class="layui-table" lay-skin="line">
+                      <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                      </colgroup>
+                      <thead>
+                      <tr>
+                        <th>卡牌/组合名</th>
+                        <th>卡牌数量</th>
+                        <th>最小抽取数量</th>
+                        <th>最大抽取数量</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td>念动力</td>
+                        <td>3</td>
+                        <td>1</td>
+                        <td>1</td>
+                      </tr>
+                      <tr>
+                        <td>爆裂兽</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                      </tr>
+                      <tr>
+                        <td>爆裂模式</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                      </tr>
+                      </tbody>
+                    </table>
+
+                    <b>当然，也可以将爆裂兽和爆裂模式写在一起：</b>
+
+                    <table class="layui-table" lay-skin="line">
+                      <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                      </colgroup>
+                      <thead>
+                      <tr>
+                        <th>卡牌/组合名</th>
+                        <th>卡牌数量</th>
+                        <th>最小抽取数量</th>
+                        <th>最大抽取数量</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td>念动力</td>
+                        <td>3</td>
+                        <td>1</td>
+                        <td>1</td>
+                      </tr>
+                      <tr>
+                        <td>兽+模式</td>
+                        <td>2</td>
+                        <td>0</td>
+                        <td>0</td>
+                      </tr>
+                      </tbody>
+                    </table>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+          </div>
+          <div class="layui-tab-item">
+            <blockquote class="layui-elem-quote">用于计算角色升级所需要的经验和刷门次数。</blockquote>
+            <div class="layui-field-box">
+              <form action="" class="layui-form layui-form-pane">
+                <div class="layui-form-item">
+                  <label class="layui-form-label">当前等级</label>
+                  <div class="layui-input-inline">
+                    <input autocomplete="off" class="layui-input" lay-verify="required" name="nowLevel" placeholder="1" required type="text">
+                  </div>
+                </div>
+                <div class="layui-form-item">
+                  <label class="layui-form-label">目标等级</label>
+                  <div class="layui-input-inline">
+                    <input autocomplete="off" class="layui-input" lay-verify="required" name="targetLevel" placeholder="44" required type="text">
+                  </div>
+                  <div class="layui-form-mid layui-word-aux">不要超过角色的最高等级</div>
+                </div>
+                <div class="layui-form-item">
+                  <label class="layui-form-label">已有经验</label>
+                  <div class="layui-input-inline">
+                    <select lay-verify="required" name="havingExp">
+                      <option value="0">0%</option>
+                      <option value="20">20%</option>
+                      <option value="40">40%</option>
+                      <option value="60">60%</option>
+                      <option value="80">80%</option>
+                    </select>
+                  </div>
+                  <div class="layui-form-mid layui-word-aux">当前等级经验条比例（大概）</div>
+                </div>
+                <div class="layui-form-item">
+                  <label class="layui-form-label">经验倍率</label>
+                  <div class="layui-input-inline">
+                    <select lay-verify="required" name="percents">
+                      <option value="1">1.0（常规）</option>
+                      <option value="1.5">1.5（活动）</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="layui-form-item">
+                  <div class="layui-input-block">
+                    <button class="layui-btn" lay-filter="formDemo" lay-submit>开始计算</button>
+                    <button class="layui-btn layui-btn-primary" type="reset">重置</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- 你的 HTML 代码 -->
+
+<script type="text/html" id="delete">
+  <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script src="https://cdn.staticfile.org/layui/2.7.6/layui.js"></script>
+<script src="calculator.js"></script>
+<script>
+  layui.use(['layer', 'form', 'table', 'element'], function(){
+    let {layer, form, table} = layui;
+
+    //第一个实例
+    table.render({
+      elem: '#card'
+      ,data: [{"cardName":"","cardNum":3,"cardMinNum":1,"cardMaxNum":3}] // 初始数据
+      ,cols: [[ //表头
+        {type: 'checkbox', fixed: 'left', LAY_CHECKED: true}
+        ,{field: 'cardName', title: '卡牌/组合名', edit:true}
+        ,{field: 'cardNum', title: '卡牌数量', width:120, edit:true}
+        ,{field: 'cardMinNum', title: '最小抽取数量', width:120, edit:true}
+        ,{field: 'cardMaxNum', title: '最大抽取数量', width: 120, edit:true}
+        ,{fixed: 'right', title:'操作', width: 70, toolbar: '#delete'}
+      ]]
+    });
+
+    // 触发单元格删除事件
+    table.on('tool(card)', function(obj) {
+      if(obj.event === 'del'){
+        obj.del();
+      }
+    });
+
+    // 重置事件
+    layui.$('#card-reset').on('click', function() {
+      layui.table.reload('card',{
+        data: [{"cardName":"","cardNum":0,"cardMinNum":0,"cardMaxNum":0}]
+      });
+    });
+
+    // 新增一行事件
+    layui.$('#new-row').on('click', function(){
+      let olddata = layui.table.cache["card"];
+      let newRow= {"cardName":"","cardNum":3,"cardMinNum":1,"cardMaxNum":3};
+      olddata.push(newRow);
+      layui.table.reload('card',{
+        data: olddata
+      });
+      return false;
+    });
+
+    // 默认值设置
+    form.val('setDefaultValue', {
+      "deckCount":20,
+      "holdingCount":4
+    });
+
+    // 提交事件
+    form.on('submit(drawCard)', function(data){
+      let reg =new RegExp("^[0-9]{1,2}$");
+
+      // 卡组数量和手牌数量
+      let deckCount = Number(data.field.deckCount), holdingCount = Number(data.field.holdingCount);
+      // 卡片组合数组
+      let chooseCombos = table.checkStatus('card').data;
+      // 转换成数字
+      for (let i = 0 ; i < chooseCombos.length ; i++) {
+        if(!reg.test(chooseCombos[i].cardNum) || !reg.test(chooseCombos[i].cardMinNum) || !reg.test(chooseCombos[i].cardMaxNum)){
+          layui.$('#resultField').css('display', 'block');
+          layui.$('#resultPercents').html('<span style="color:red">请在卡牌/组合名为：' + chooseCombos[i].cardName + ' 所在行输入合法的数字</span>');
+          return false;
+        }
+
+        chooseCombos[i].cardNum = Number(chooseCombos[i].cardNum);
+        chooseCombos[i].cardMinNum = Number(chooseCombos[i].cardMinNum);
+        chooseCombos[i].cardMaxNum = Number(chooseCombos[i].cardMaxNum);
+      }
+
+      // 计算概率
+      let chance = calculate(deckCount, holdingCount, chooseCombos);
+      let resultStr;
+      if (isNaN(chance)) {
+        // 错误提示
+        resultStr = '<span style="color:red">' + chance + '</span>';
+      } else {
+        // 展示结果
+        let color = ["red", "#ff9900", "#ffbf00", "green", "green"][Math.floor(chance / 25)];
+        resultStr = '你有 <span style="font-size: 30px; color:' + color + '">' + chance.toFixed(2) + '%</span> 的概率摸到满足勾选条件的卡牌组合';
+      }
+
+      layui.$('#resultField').css('display', 'block');
+      layui.$('#resultPercents').html(resultStr);
+
+      return false;
+    });
+
+
+    const levelUpCost = [
+      500,
+      600,
+      700,
+      800,
+      1000,
+      1300,
+      1600,
+      1900,
+      2200,
+      2600,
+      3000,
+      3500,
+      4000,
+      4500,
+      5000,
+      5500,
+      6000,
+      7000,
+      8000,
+      9000,
+      10000,
+      10000,
+      10000,
+      10000,
+      15000,
+      15000,
+      15000,
+      15000,
+      15000,
+      20000,
+      20000,
+      20000,
+      20000,
+      20000,
+      20000,
+      30000,
+      30000,
+      30000,
+      30000,
+      40000,
+      40000,
+      40000,
+      40000,
+      40000,
+    ];
+
+    //提交
+    form.on('submit(formDemo)', function(data){
+
+      let percents = data.field.percents, nowLevel = data.field.nowLevel,
+              targetLevel = data.field.targetLevel, havingExp = data.field.havingExp;
+
+      let expSum = 0;
+      for (let i = nowLevel - 1; i < targetLevel - 1; i++) {
+          expSum += levelUpCost[i];
+      }
+      expSum -= havingExp * 0.01 * levelUpCost[nowLevel - 1];
+
+      let time = Math.ceil(expSum / (3 * 500 * percents));
+
+      layer.alert('升级需要总经验为：' + expSum + '<br>需要进行的对战次数：' + time * 3 + '<br>在3倍经验门，刷门次数：' + time, {
+        shadeClose: true
+      });
+
+      return false;
+    });
+
+  });
+</script>
+</body>
+</html>
